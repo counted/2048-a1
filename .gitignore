@@ -11,3 +11,10 @@ config.h
 config.log
 config.status
 Makefile
+/2048/2048/Debug
+/2048/2048/x64
+/2048/Debug
+/2048/.vs
+/2048/x64
+/2048/2048/2048.vcxproj.filters
+/2048/2048/2048.vcxproj.user
