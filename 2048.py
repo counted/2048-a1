@@ -16,6 +16,22 @@ MULTITHREAD = True
 
 # Enable SENSEI Mode?
 SENSEI = True
+          
+for suffix in ['so', 'dll', 'dylib']:   
+    dllfn = '2048/x64/debug/2048.' + suffix
+    if not os.path.isfile(dllfn):
+        continue
+    ailib = ctypes.CDLL(dllfn)
+    break
+else:
+    print("Couldn't find 2048 library bin/2048.{so,dll,dylib}! Make sure to build it first.")
+    exit()
+
+ailib.init_tables()
+
+ailib.find_best_move.argtypes = [ctypes.c_uint64]
+ailib.score_toplevel_move.argtypes = [ctypes.c_uint64, ctypes.c_int]
+ailib.score_toplevel_move.restype = ctypes.c_float
 
 def arrow_input():
         base = msvcrt.getch()
@@ -35,23 +51,7 @@ def arrow_input():
         else:
                  print("Bad base key")
                  return(4)
-            
-for suffix in ['so', 'dll', 'dylib']:   
-    dllfn = '2048/x64/debug/2048.' + suffix
-    if not os.path.isfile(dllfn):
-        continue
-    ailib = ctypes.CDLL(dllfn)
-    break
-else:
-    print("Couldn't find 2048 library bin/2048.{so,dll,dylib}! Make sure to build it first.")
-    exit()
-
-ailib.init_tables()
-
-ailib.find_best_move.argtypes = [ctypes.c_uint64]
-ailib.score_toplevel_move.argtypes = [ctypes.c_uint64, ctypes.c_int]
-ailib.score_toplevel_move.restype = ctypes.c_float
-
+                
 def to_c_board(m):
     board = 0
     i = 0
@@ -96,14 +96,6 @@ if MULTITHREAD:
         if bestscore == 0:
             return -1
         return bestmove
-    def delta_score(bi, mi):
-        board = to_c_board(bi)
-        scores = pool.map(score_toplevel_move, [(board, move) for move in range(4)])
-        bestmove, bestscore = max(enumerate(scores), key=lambda x:x[1])
-        if bestscore == 0:
-            return -1
-        thismove = ailib.score_toplevel_move ( board, mi )
-        return thismove - bestscore
 else:
     def find_best_move(m):
         board = to_c_board(m)
@@ -152,32 +144,28 @@ def play_game(gamectrl):
             break
             
         if SENSEI:
-            if move == 0:
-                print("Sensei says move UP")
-            elif move == 1:
-                print("Sensei says move DOWN")
-            elif move == 2:
-                print("Sensie says move LEFT")
-            elif move == 3:
-                print("Sensie says move Right")
-            while 1:
-                moveinput = arrow_input()
-                if moveinput != 4:
-                    break
+                for x in range(4):
+                        if move == x:
+                                print("Sensei says move %s" % movename(x)) 
+           
+        while 1:
+            moveinput = arrow_input()
+            if moveinput != 4:
+                break
                 
-            print(movename(moveinput));
+        print("Input %s" % movename(moveinput));
                       
-            if scores[moveinput] < -1000:
-                    print("Warning BAD Move, are you sure?")
-                    while 1:
-                            answer = msvcrt.getch()
-                            if answer == b'y':
-                                    break;
-                            if answer == b'n':
-                                    moveinput = move;
-                                    break;
-                            print("Bad Answer")
-                            print ( answer )
+        if scores[moveinput] < -1000:
+            print("Warning BAD Move, are you sure?")
+            while 1:
+                answer = msvcrt.getch()
+                if answer == b'y':
+                    break;
+                if answer == b'n':
+                    moveinput = move;
+                    break;
+                print("Bad Answer")
+                print ( answer )
                     
             gamectrl.execute_move(moveinput)
         else:
