@@ -415,16 +415,16 @@ float score_toplevel_move(board_t board, int move) {
     elapsed += (finish.tv_usec - start.tv_usec) / 1000000.0;
 	
 	if( move == 0)
-		printf("Move    Up: result %d: eval'd %ld moves (%d cache hits, %d cache size) in %.2f seconds (maxdepth=%d)\n", res,
+		printf("Move    Up: result %.0f: eval'd %ld moves (%d cache hits, %d cache size) in %.2f seconds (maxdepth=%d)\n", res,
         state.moves_evaled, state.cachehits, (int)state.trans_table.size(), elapsed, state.maxdepth);
 	else if (move == 1)
-		printf("Move  Down: result %d: eval'd %ld moves (%d cache hits, %d cache size) in %.2f seconds (maxdepth=%d)\n", res,
+		printf("Move  Down: result %.0f: eval'd %ld moves (%d cache hits, %d cache size) in %.2f seconds (maxdepth=%d)\n", res,
 			state.moves_evaled, state.cachehits, (int)state.trans_table.size(), elapsed, state.maxdepth);
 	else if (move == 2)
-		printf("Move  Left: result %d: eval'd %ld moves (%d cache hits, %d cache size) in %.2f seconds (maxdepth=%d)\n", res,
+		printf("Move  Left: result %.0f: eval'd %ld moves (%d cache hits, %d cache size) in %.2f seconds (maxdepth=%d)\n", res,
 			state.moves_evaled, state.cachehits, (int)state.trans_table.size(), elapsed, state.maxdepth);
 	else if (move == 3)
-		printf("Move Right: result %d: eval'd %ld moves (%d cache hits, %d cache size) in %.2f seconds (maxdepth=%d)\n", res,
+		printf("Move Right: result %.0f: eval'd %ld moves (%d cache hits, %d cache size) in %.2f seconds (maxdepth=%d)\n", res,
 			state.moves_evaled, state.cachehits, (int)state.trans_table.size(), elapsed, state.maxdepth);
     
 	return res;
