@@ -7,12 +7,37 @@ from __future__ import print_function
 import ctypes
 import time
 import os
+import msvcrt
+
+
 
 # Enable multithreading?
 MULTITHREAD = True
 
-for suffix in ['so', 'dll', 'dylib']:
-    dllfn = 'bin/2048.' + suffix
+# Enable SENSEI Mode?
+SENSEI = True
+
+def arrow_input():
+        base = msvcrt.getch()
+        if base == b'\xe0':
+                sub = msvcrt.getch()
+                if sub == b'H':
+                        return(0)
+                elif sub == b'P':
+                        return (1)
+                elif sub == b'M':
+                        return (3)
+                elif sub == b'K':
+                        return (2)
+                else:
+                        print ("Bad sub key")
+                        return(4)
+        else:
+                 print("Bad base key")
+                 return(4)
+            
+for suffix in ['so', 'dll', 'dylib']:   
+    dllfn = '2048/x64/debug/2048.' + suffix
     if not os.path.isfile(dllfn):
         continue
     ailib = ctypes.CDLL(dllfn)
@@ -56,7 +81,7 @@ def _to_score(c):
 
 def to_score(m):
     return [[_to_score(c) for c in row] for row in m]
-
+                
 if MULTITHREAD:
     from multiprocessing.pool import ThreadPool
     pool = ThreadPool(4)
@@ -65,21 +90,27 @@ if MULTITHREAD:
 
     def find_best_move(m):
         board = to_c_board(m)
-
         print_board(to_val(m))
-
         scores = pool.map(score_toplevel_move, [(board, move) for move in range(4)])
         bestmove, bestscore = max(enumerate(scores), key=lambda x:x[1])
         if bestscore == 0:
             return -1
         return bestmove
+    def delta_score(bi, mi):
+        board = to_c_board(bi)
+        scores = pool.map(score_toplevel_move, [(board, move) for move in range(4)])
+        bestmove, bestscore = max(enumerate(scores), key=lambda x:x[1])
+        if bestscore == 0:
+            return -1
+        thismove = ailib.score_toplevel_move ( board, mi )
+        return thismove - bestscore
 else:
     def find_best_move(m):
         board = to_c_board(m)
         return ailib.find_best_move(board)
 
 def movename(move):
-    return ['up', 'down', 'left', 'right'][move]
+    return ['Up', 'Down', 'Left', 'Right'][move]
 
 def play_game(gamectrl):
     moveno = 0
@@ -94,11 +125,64 @@ def play_game(gamectrl):
 
         moveno += 1
         board = gamectrl.get_board()
-        move = find_best_move(board)
+        
+        board_c = to_c_board(board)
+        print_board(to_val(board))
+
+        import array as arr
+        scores = arr.array('f', [-1000000.0, -1000000.0, -1000000.0, -1000000.0])
+
+        for x in range(4):
+                scores[x] = ailib.score_toplevel_move ( board_c, x )
+       
+        move = -1
+        bestscore = 0
+
+        for x in range(4):
+                if scores[x] > bestscore :
+                        bestscore = scores[x]
+                        move = x
+
+        for x in range(4):
+                scores[x] = scores[x] - bestscore;
+                print ("%s %f" % (movename(x), scores[x]))
+     
         if move < 0:
+            print ("Bad move index")
             break
-        print("%010.6f: Score %d, Move %d: %s" % (time.time() - start, gamectrl.get_score(), moveno, movename(move)))
-        gamectrl.execute_move(move)
+            
+        if SENSEI:
+            if move == 0:
+                print("Sensei says move UP")
+            elif move == 1:
+                print("Sensei says move DOWN")
+            elif move == 2:
+                print("Sensie says move LEFT")
+            elif move == 3:
+                print("Sensie says move Right")
+            while 1:
+                moveinput = arrow_input()
+                if moveinput != 4:
+                    break
+                
+            print(movename(moveinput));
+                      
+            if scores[moveinput] < -1000:
+                    print("Warning BAD Move, are you sure?")
+                    while 1:
+                            answer = msvcrt.getch()
+                            if answer == b'y':
+                                    break;
+                            if answer == b'n':
+                                    moveinput = move;
+                                    break;
+                            print("Bad Answer")
+                            print ( answer )
+                    
+            gamectrl.execute_move(moveinput)
+        else:
+              print("%010.6f: Score %d, Move %d: %s" % (time.time() - start, gamectrl.get_score(), move, movename(move)))
+              gamectrl.execute_move(move)
 
     score = gamectrl.get_score()
     board = gamectrl.get_board()
