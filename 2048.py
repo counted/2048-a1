@@ -48,9 +48,11 @@ def arrow_input():
                 else:
                         print ("Bad sub key")
                         return(4)
+        elif base == b'a':
+            return (5)
         else:
-                 print("Bad base key")
-                 return(4)
+            print("Bad base key")
+            return(4)
                 
 def to_c_board(m):
     board = 0
@@ -81,7 +83,7 @@ def _to_score(c):
 
 def to_score(m):
     return [[_to_score(c) for c in row] for row in m]
-                
+
 if MULTITHREAD:
     from multiprocessing.pool import ThreadPool
     pool = ThreadPool(4)
@@ -107,6 +109,7 @@ def movename(move):
 def play_game(gamectrl):
     moveno = 0
     start = time.time()
+    auto = False
     while 1:
         state = gamectrl.get_status()
         if state == 'ended':
@@ -137,7 +140,7 @@ def play_game(gamectrl):
 
         for x in range(4):
                 scores[x] = scores[x] - bestscore;
-                print ("%s %f" % (movename(x), scores[x]))
+                print ("Delta to best move for %s: %f" % (movename(x), scores[x]))
      
         if move < 0:
             print ("Bad move index")
@@ -147,27 +150,39 @@ def play_game(gamectrl):
                 for x in range(4):
                         if move == x:
                                 print("Sensei says move %s" % movename(x)) 
-           
-        while 1:
-            moveinput = arrow_input()
-            if moveinput != 4:
-                break
-                
-        print("Input %s" % movename(moveinput));
-                      
-        if scores[moveinput] < -1000:
-            print("Warning BAD Move, are you sure?")
-            while 1:
-                answer = msvcrt.getch()
-                if answer == b'y':
-                    break;
-                if answer == b'n':
-                    moveinput = move;
-                    break;
-                print("Bad Answer")
-                print ( answer )
-                    
-            gamectrl.execute_move(moveinput)
+                if auto:
+                    moveinput = move
+                else:
+                    while 1:
+                        moveinput = arrow_input()
+                        if moveinput == 5:
+                            moveinput = move
+                            auto = True
+                            break;
+                        if moveinput == 0:
+                            break
+                        if moveinput == 1:
+                            break
+                        if moveinput == 2:
+                            break
+                        if moveinput == 3:
+                            break
+                             
+                print("Input %s" % movename(moveinput));
+       
+                if scores[moveinput] < -1000:
+                    print("Warning BAD Move, are you sure?")
+                    while 1:
+                        answer = msvcrt.getch()
+                        if answer == b'y':
+                            break;
+                        if answer == b'n':
+                            moveinput = -1;
+                            break;
+                        print("Bad Answer")
+                        print ( answer )
+                if moveinput != -1:
+                    gamectrl.execute_move(moveinput)
         else:
               print("%010.6f: Score %d, Move %d: %s" % (time.time() - start, gamectrl.get_score(), move, movename(move)))
               gamectrl.execute_move(move)
