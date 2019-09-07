@@ -24,7 +24,7 @@ for suffix in ['so', 'dll', 'dylib']:
     ailib = ctypes.CDLL(dllfn)
     break
 else:
-    print("Couldn't find 2048 library bin/2048.{so,dll,dylib}! Make sure to build it first.")
+    print("Couldn't find 2048 library 2048/x64/debug/2048.{so,dll,dylib}! Make sure to build it first.")
     exit()
 
 ailib.init_tables()
