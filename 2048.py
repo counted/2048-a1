@@ -108,6 +108,10 @@ def movename(move):
 
 def play_game(gamectrl):
     moveno = 0
+    best_move = 0
+    good_move = 0
+    marginal_move = 0
+    bad_move = 0
     start = time.time()
     auto = False
     while 1:
@@ -123,13 +127,15 @@ def play_game(gamectrl):
         
         board_c = to_c_board(board)
         print_board(to_val(board))
-
+        
+        print("\n")
+        
         import array as arr
         scores = arr.array('f', [-1000000.0, -1000000.0, -1000000.0, -1000000.0])
 
         for x in range(4):
                 scores[x] = ailib.score_toplevel_move ( board_c, x )
-       
+        print("\n")
         move = -1
         bestscore = 0
 
@@ -140,7 +146,9 @@ def play_game(gamectrl):
 
         for x in range(4):
                 scores[x] = scores[x] - bestscore;
-                print ("Delta to best move for %s: %f" % (movename(x), scores[x]))
+                print ("Delta to best move for %s: %.0f" % (movename(x), scores[x]))
+
+        print("\n")
      
         if move < 0:
             print ("Bad move index")
@@ -149,7 +157,8 @@ def play_game(gamectrl):
         if SENSEI:
                 for x in range(4):
                         if move == x:
-                                print("Sensei says move %s" % movename(x)) 
+                                print("Sensei says move %s\n" % movename(x)) 
+
                 if auto:
                     moveinput = move
                 else:
@@ -168,10 +177,20 @@ def play_game(gamectrl):
                         if moveinput == 3:
                             break
                              
-                print("Input %s" % movename(moveinput));
-       
-                if scores[moveinput] < -1000:
+                print("Input %s\n" % movename(moveinput));
+                
+                if move == moveinput:
+                    best_move += 1
+                elif scores[moveinput] > -500 :
+                    good_move += 1
+                elif scores[moveinput] > -5000 :
+                    marginal_move += 1
+                else:
+                    bad_move += 1
+                    
+                if scores[moveinput] < -5000:
                     print("Warning BAD Move, are you sure?")
+                    print (scores[moveinput])
                     while 1:
                         answer = msvcrt.getch()
                         if answer == b'y':
@@ -183,10 +202,10 @@ def play_game(gamectrl):
                         print ( answer )
                 if moveinput != -1:
                     gamectrl.execute_move(moveinput)
+                print("B: %.0f G: %.0f M: %.0f B %.0f\n" % (best_move * 100 / moveno, good_move * 100 / moveno, marginal_move * 100 / moveno,  bad_move * 100/ moveno))    
         else:
               print("%010.6f: Score %d, Move %d: %s" % (time.time() - start, gamectrl.get_score(), move, movename(move)))
               gamectrl.execute_move(move)
-
     score = gamectrl.get_score()
     board = gamectrl.get_board()
     maxval = max(max(row) for row in to_val(board))
