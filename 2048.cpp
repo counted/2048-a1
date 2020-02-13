@@ -1,3 +1,6 @@
+#include "pch.h"
+#include <iostream>
+
 #include <ctype.h>
 #include <math.h>
 #include <stdio.h>
@@ -6,6 +9,7 @@
 #include <string.h>
 #include <time.h>
 #include <algorithm>
+#include <limits>>
 
 #include "2048.h"
 
@@ -393,16 +397,37 @@ float score_toplevel_move(board_t board, int move) {
     state.depth_limit = std::max(3, count_distinct_tiles(board) - 2);
 
     gettimeofday(&start, NULL);
+
+	//float base = FLT_MIN;
+
+	/*for (int x = 0; x < 4; x++)
+	{
+		res = _score_toplevel_move(state, board, x);
+		if (res > base)
+			base = res;
+	}*/
+
     res = _score_toplevel_move(state, board, move);
+
     gettimeofday(&finish, NULL);
 
     elapsed = (finish.tv_sec - start.tv_sec);
     elapsed += (finish.tv_usec - start.tv_usec) / 1000000.0;
-
-    printf("Move %d: result %f: eval'd %ld moves (%d cache hits, %d cache size) in %.2f seconds (maxdepth=%d)\n", move, res,
+	
+	if( move == 0)
+		printf("Move    Up: result %.0f: eval'd %ld moves (%d cache hits, %d cache size) in %.2f seconds (maxdepth=%d)\n", res,
         state.moves_evaled, state.cachehits, (int)state.trans_table.size(), elapsed, state.maxdepth);
-
-    return res;
+	else if (move == 1)
+		printf("Move  Down: result %.0f: eval'd %ld moves (%d cache hits, %d cache size) in %.2f seconds (maxdepth=%d)\n", res,
+			state.moves_evaled, state.cachehits, (int)state.trans_table.size(), elapsed, state.maxdepth);
+	else if (move == 2)
+		printf("Move  Left: result %.0f: eval'd %ld moves (%d cache hits, %d cache size) in %.2f seconds (maxdepth=%d)\n", res,
+			state.moves_evaled, state.cachehits, (int)state.trans_table.size(), elapsed, state.maxdepth);
+	else if (move == 3)
+		printf("Move Right: result %.0f: eval'd %ld moves (%d cache hits, %d cache size) in %.2f seconds (maxdepth=%d)\n", res,
+			state.moves_evaled, state.cachehits, (int)state.trans_table.size(), elapsed, state.maxdepth);
+    
+	return res;
 }
 
 /* Find the best move for a given board. */
@@ -503,9 +528,14 @@ void play_game(get_move_func_t get_move) {
 
         printf("\nMove #%d, current score=%.0f\n", ++moveno, score_board(board) - scorepenalty);
 
+
         move = get_move(board);
         if(move < 0)
             break;
+
+		#if defined(SENSEI)
+
+		#endif
 
         newboard = execute_move(move, board);
         if(newboard == board) {

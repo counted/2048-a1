@@ -13,9 +13,6 @@ import msvcrt
 
 # Enable multithreading?
 MULTITHREAD = True
-
-# Enable SENSEI Mode?
-SENSEI = True
           
 for suffix in ['so', 'dll', 'dylib']:   
     dllfn = '2048/x64/debug/2048.' + suffix
@@ -115,8 +112,10 @@ def play_game(gamectrl):
     marginal_move = 0
     bad_move = 0
     start = time.time()
-    auto = False
+
+    
     while 1:
+       
         state = gamectrl.get_status()
         if state == 'ended':
             break
@@ -131,83 +130,60 @@ def play_game(gamectrl):
         print_board(to_val(board))
         
         print("\n")
+
+        hint = False
         
-        import array as arr
-        scores = arr.array('f', [-1000000.0, -1000000.0, -1000000.0, -1000000.0])
+        while 1:
+                moveinput = arrow_input()
+                if moveinput == 5:
+                    moveinput = move
+                    auto = True
+                    break
+                elif moveinput == 6:
+                    hint = True
+                    break
+                if moveinput == 0:
+                    break
+                if moveinput == 1:
+                    break
+                if moveinput == 2:
+                    break
+                if moveinput == 3:
+                    break
 
-        for x in range(4):
+        if hint :
+            import array as arr
+            scores = arr.array('f', [-1000000.0, -1000000.0, -1000000.0, -1000000.0])
+
+            for x in range(4):
                 scores[x] = ailib.score_toplevel_move ( board_c, x )
-        print("\n")
-        move = -1
-        bestscore = 0
+            print("\n")
+            move = -1
+            bestscore = 0
 
-        for x in range(4):
+            for x in range(4):
                 if scores[x] > bestscore :
                         bestscore = scores[x]
                         move = x
 
-        for x in range(4):
+            for x in range(4):
                 scores[x] = scores[x] - bestscore;
                 print ("Delta to best move for %s: %.0f" % (movename(x), scores[x]))
 
-        print("\n")
+            print("\n")
      
-        if move < 0:
-            print ("Bad move index")
-            break
+            if move < 0:
+                print ("Bad move index")
+                break
             
-        if SENSEI:
-                for x in range(4):
-                        if move == x:
-                                print("Sensei says move %s\n" % movename(x)) 
 
-                if auto:
-                    moveinput = move
-                else:
-                    while 1:
-                        moveinput = arrow_input()
-                        if moveinput == 5:
-                            moveinput = move
-                            auto = True
-                            break;
-                        if moveinput == 0:
-                            break
-                        if moveinput == 1:
-                            break
-                        if moveinput == 2:
-                            break
-                        if moveinput == 3:
-                            break
-                             
-                print("Input %s\n" % movename(moveinput));
-                
-                if move == moveinput:
-                    best_move += 1
-                elif scores[moveinput] > -500 :
-                    good_move += 1
-                elif scores[moveinput] > -5000 :
-                    marginal_move += 1
-                else:
-                    bad_move += 1
-                    
-                if scores[moveinput] < -5000:
-                    print("Warning BAD Move, are you sure?")
-                    print (scores[moveinput])
-                    while 1:
-                        answer = msvcrt.getch()
-                        if answer == b'y':
-                            break;
-                        if answer == b'n':
-                            moveinput = -1;
-                            break;
-                        print("Bad Answer")
-                        print ( answer )
-                if moveinput != -1:
-                    gamectrl.execute_move(moveinput)
-                print("B: %.0f G: %.0f M: %.0f B %.0f\n" % (best_move * 100 / moveno, good_move * 100 / moveno, marginal_move * 100 / moveno,  bad_move * 100/ moveno))    
+            for x in range(4):
+                if move == x:
+                        print("Sensei says move %s\n" % movename(x))                
         else:
-              print("%010.6f: Score %d, Move %d: %s" % (time.time() - start, gamectrl.get_score(), move, movename(move)))
-              gamectrl.execute_move(move)
+            if moveinput != -1:
+                gamectrl.execute_move(moveinput)
+       
     score = gamectrl.get_score()
     board = gamectrl.get_board()
     maxval = max(max(row) for row in to_val(board))
